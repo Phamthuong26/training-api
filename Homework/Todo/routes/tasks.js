@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const Todo = require('../models/Todo');
+const Task = require('../models/Task');
 const User = require('../models/User');
 const auth = require('../middleware/auth')
 
 router.use(auth);
 
 // create todo
-// http://localhost:3000/api/todos/
+// http://localhost:3000/api/tasks/
 router.post('/', async (req, res) => {
     try {
         const { title, description, status, dueDate, createdBy } = req.body;
@@ -27,23 +27,23 @@ router.post('/', async (req, res) => {
         if (dueDate && isNaN(Date.parse(dueDate))) {
             return res.status(400).json({ message: 'Ngày dueDate không hợp lệ' });
         }
-        const newTodo = new Todo({ title, description, status, dueDate, createdBy });
-        await newTodo.save();
-        res.status(201).json(newTodo);
+        const newTask = new Task({ title, description, status, dueDate, createdBy });
+        await newTask.save();
+        res.status(201).json(newTask);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
 // get list
-// http://localhost:3000/api/todos/
+// http://localhost:3000/api/tasks/
 router.get('/', async (req, res) => {
     try {
         const { search, status, createdBy } = req.query;
         let query = {};
         // search by title, date
-        // http://localhost:3000/api/todos?search=Mới
-        // http://localhost:3000/api/todos?search=2025-02-20
+        // http://localhost:3000/api/tasks?search=Mới
+        // http://localhost:3000/api/tasks?search=2025-02-20
         if (search && search.trim() !== '') {
             const title = search.trim();
             const date = new Date(title);
@@ -72,37 +72,40 @@ router.get('/', async (req, res) => {
             query.createdBy = createdBy;
         }
 
-        const todos = await Todo.find(query);
-        res.json(todos);
+        const tasks = await Task.find(query);
+        res.json(tasks);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
 // update todo 
-// http://localhost:3000/api/todos/:id
+// http://localhost:3000/api/tasks/:id
 router.put('/:id', async (req, res) => {
     try {
         const { title, description, status, dueDate } = req.body;
-        const updatedTodo = await Todo.findByIdAndUpdate(
+        const updatedTask = await Task.findByIdAndUpdate(
             req.params.id,
             { title, description, status, dueDate },
             { new: true }
         );
-        if (!updatedTodo) return res.status(404).json({ message: 'Todo not found' });
-        res.json(updatedTodo);
+        if (!updatedTask) return res.status(404).json({ message: 'Task not found' });
+        if (updatedTask.createdBy.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Không có quyền chỉnh sửa' });
+        }
+        res.json(updatedTask);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
 // delete to do 
-// http://localhost:3000/api/todos/:id
+// http://localhost:3000/api/tasks/:id
 router.delete('/:id', async (req, res) => {
     try {
-        const deletedTodo = await Todo.findByIdAndDelete(req.params.id);
-        if (!deletedTodo) return res.status(404).json({ message: 'Todo not found' });
-        res.json({ message: 'Todo deleted successfully' });
+        const deletedTask = await Task.findByIdAndDelete(req.params.id);
+        if (!deletedTask) return res.status(404).json({ message: 'Task not found' });
+        res.json({ message: 'Task deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

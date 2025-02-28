@@ -14,7 +14,7 @@ mongoose.connect('mongodb+srv://phamthuong1426:Thuong2003%40@thuong.l7ego.mongod
 
 // Routes
 app.use('/api/users', require('./routes/users'));
-app.use('/api/todos', require('./routes/todos'));
+app.use('/api/tasks', require('./routes/tasks'));
 
 // Middleware 
 app.use((err, req, res, next) => {
