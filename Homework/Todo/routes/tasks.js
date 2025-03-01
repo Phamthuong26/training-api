@@ -93,6 +93,15 @@ router.put('/:id', async (req, res) => {
         if (updatedTask.createdBy.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Không có quyền chỉnh sửa' });
         }
+        if (!title || title.trim().length < 3) {
+            return res.status(400).json({ message: 'Title phải có ít nhất 3 ký tự' });
+        }
+        if (!description || description.trim().length < 3) {
+            return res.status(400).json({ message: 'Description phải có ít nhất 3 ký tự' });
+        }
+        if (dueDate && isNaN(Date.parse(dueDate))) {
+            return res.status(400).json({ message: 'Ngày dueDate không hợp lệ' });
+        }
         res.json(updatedTask);
     } catch (err) {
         res.status(500).json({ message: err.message });

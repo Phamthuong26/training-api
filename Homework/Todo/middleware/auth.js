@@ -5,12 +5,12 @@ const auth = async (req, res, next) => {
         const userID = req.headers.userid || req.headers.userID;
 
         if (!userID) {
-            return res.status(401).json({ message: 'UserID is required' });
+            return res.status(400).json({ message: 'UserID is required' });
         }
 
         const user = await User.findById(userID);
         if (!user) {
-            return res.status(401).json({ message: 'User does not exist' });
+            return res.status(400).json({ message: 'User does not exist' });
         }
 
         req.user = user;
